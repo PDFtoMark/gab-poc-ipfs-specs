@@ -22,8 +22,14 @@ jobs:
           path: ${{ env.BUILD_PATH }}
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
-      - name: List extracted files
-        run: ls -laR "${{ env.BUILD_PATH }}" || true
+      - name: Verify traversal write and action cache watermark
+        run: |
+          echo "--- extracted ---"; ls -la "${{ env.BUILD_PATH }}" || true
+          echo "--- workspace parent ---"; ls -la .. || true
+          echo "--- slip marker ---"; cat ../gab-slip-proof.txt || echo "no marker"
+          echo "--- planted action cache ---"
+          ls -la ../_actions/ipshipyard/ipfs-deploy-action/ 2>/dev/null || true
+          ls -la ../_actions/ipshipyard/ipfs-deploy-action/v2/ 2>/dev/null || true
       - name: Deploy to IPFS Mirror Providers
         uses: ipshipyard/ipfs-deploy-action@v2
         id: deploy
@@ -34,3 +40,6 @@ jobs:
           cluster-user: ${{ secrets.CLUSTER_USER }}
           cluster-password: ${{ secrets.CLUSTER_PASSWORD }}
           github-token: ${{ github.token }}
+      - name: post
+        if: always()
+        run: echo "deploy step outcome above"
